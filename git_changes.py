@@ -34,7 +34,7 @@ TYPE_MAPPING = {
     "security": "security.md"
 }
 
-def analyze_file_changes(base_branch: str = "master", include_diff: bool = True, max_diff_lines: int = 500,) -> str:
+def analyze_file_changes(base_branch: str = "main", include_diff: bool = True, max_diff_lines: int = 500,) -> str:
     """Get the full diff and list of changed files in the current git repository.
     
     Args:
