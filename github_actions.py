@@ -120,4 +120,12 @@ def create_deployment_summary(ci_results_summary: str) -> str:
 
 
 if __name__ == "__main__":
-    pass
+    events = get_recent_actions_events()
+    print(f"The events are {events}")
+    workflow_status = get_workflow_status()
+    print(f"Workflow status is {workflow_status}")
+    analysis = analyze_ci_results(workflow_status=workflow_status)
+    print(f"Analysis is {analysis}")
+    dep_sum = create_deployment_summary(ci_results_summary=analysis)
+
+
