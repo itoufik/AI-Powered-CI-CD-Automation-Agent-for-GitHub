@@ -14,3 +14,7 @@ wheels/
 
 #ruff
 .ruff_cache
+
+rough.text
+nodesource_setup.sh
+pr_agent_final.egg-info/
