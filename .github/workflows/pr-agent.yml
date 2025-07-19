@@ -7,6 +7,8 @@ on:
 jobs:
   describe_pr:
     runs-on: ubuntu-latest
+    env:
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
     permissions:
       pull-requests: write
       contents: read
