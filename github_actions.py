@@ -8,7 +8,7 @@ from utils import get_gpt_response
 EVENTS_FILE = Path(__file__).parent / "github_events.json"
 
 
-def get_recent_actions_events(limit: int = 10) -> str:
+def get_recent_actions_events(limit: int = 100) -> str:
     """Get recent GitHub Actions events received via webhook.
 
     Args:

@@ -1,5 +1,6 @@
 import subprocess
 import json
+import os
 from pathlib import Path
 from utils import get_gpt_response
 
@@ -36,17 +37,16 @@ TYPE_MAPPING = {
 
 
 def analyze_file_changes(
-    base_branch: str = "main",
     include_diff: bool = True,
-    max_diff_lines: int = 500,
+    max_diff_lines: int = 2000,
 ) -> str:
     """Get the full diff and list of changed files in the current git repository.
 
     Args:
-        base_branch: Base branch to compare against (default: origin)
         include_diff: Include the full diff content (default: true)
         max_diff_lines: Maximum number of diff lines to include (default: 500)
     """
+    base_branch = os.environ.get("GITHUB_BASE_REF", "main")
     cwd = str(Path(__file__).parent)  # current directory
     print(f"Working on dir : {cwd}")
     # Get list of changed files
@@ -124,7 +124,7 @@ def get_pr_templates() -> str:
     return json.dumps(templates, indent=2)
 
 
-def summerize_change(git_changes: str) -> str:  # 04/07
+def summerize_change(git_changes: str) -> str:
     """Summarizes the changes in a git repository using an LLM.
 
     Args:
@@ -151,7 +151,7 @@ def summerize_change(git_changes: str) -> str:  # 04/07
     return res
 
 
-def suggest_change_type(git_changes_summary: str) -> str:  # 04/07
+def suggest_change_type(git_changes_summary: str) -> str:
     """Suggests a change type based on the git changes summary.
 
     Args:
@@ -249,4 +249,8 @@ if __name__ == "__main__":
     filled_template = fill_template(
         change_type=change_type, git_changes_summary=change_summary
     )
-    print(filled_template)
+    
+    # Write the output to a file
+    with open("pr_description.md", "w") as f:
+        f.write(filled_template)
+    print("PR description generated and saved to pr_description.md")
