@@ -7,16 +7,19 @@ on:
 jobs:
   describe_pr:
     runs-on: ubuntu-latest
+
     env:
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+
     permissions:
       pull-requests: write
       contents: read
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # Fetch all history for git diff
+          fetch-depth: 0  # Fetch all history for git diff
 
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -36,8 +39,9 @@ jobs:
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
           python git_changes.py
+          PR_BODY_CONTENT="$(cat pr_description.md)"
           echo "pr_body<<EOF" >> $GITHUB_OUTPUT
-          cat pr_description.md >> $GITHUB_OUTPUT
+          echo "$PR_BODY_CONTENT" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Update PR Description
