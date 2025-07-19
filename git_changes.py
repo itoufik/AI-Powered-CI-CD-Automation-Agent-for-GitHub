@@ -38,7 +38,7 @@ TYPE_MAPPING = {
 
 def analyze_file_changes(
     include_diff: bool = True,
-    max_diff_lines: int = 500,
+    max_diff_lines: int = 2000,
 ) -> str:
     """Get the full diff and list of changed files in the current git repository.
 
@@ -51,7 +51,7 @@ def analyze_file_changes(
 
     if not base_sha or not head_sha:
         raise ValueError("BASE_SHA and HEAD_SHA environment variables are required")
-
+    
     cwd = str(Path(__file__).parent)  # current directory
     print(f"Working on dir : {cwd}")
     # Get list of changed files
@@ -112,7 +112,6 @@ def analyze_file_changes(
         "total_diff_lines": len(diff_lines) if include_diff else 0,
     }
 
-
     return json.dumps(analysis, indent=2)
 
 
@@ -130,7 +129,7 @@ def get_pr_templates() -> str:
     return json.dumps(templates, indent=2)
 
 
-def summerize_change(git_changes: str) -> str:  # 04/07
+def summerize_change(git_changes: str) -> str:
     """Summarizes the changes in a git repository using an LLM.
 
     Args:
@@ -157,7 +156,7 @@ def summerize_change(git_changes: str) -> str:  # 04/07
     return res
 
 
-def suggest_change_type(git_changes_summary: str) -> str:  # 04/07
+def suggest_change_type(git_changes_summary: str) -> str:
     """Suggests a change type based on the git changes summary.
 
     Args:
