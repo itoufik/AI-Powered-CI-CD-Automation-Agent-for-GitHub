@@ -1,5 +1,6 @@
 import subprocess
 import json
+import os
 from pathlib import Path
 from utils import get_gpt_response
 
@@ -36,22 +37,26 @@ TYPE_MAPPING = {
 
 
 def analyze_file_changes(
-    base_branch: str = "main",
     include_diff: bool = True,
     max_diff_lines: int = 500,
 ) -> str:
     """Get the full diff and list of changed files in the current git repository.
 
     Args:
-        base_branch: Base branch to compare against (default: origin)
         include_diff: Include the full diff content (default: true)
         max_diff_lines: Maximum number of diff lines to include (default: 500)
     """
+    base_sha = os.environ.get("BASE_SHA")
+    head_sha = os.environ.get("HEAD_SHA")
+
+    if not base_sha or not head_sha:
+        raise ValueError("BASE_SHA and HEAD_SHA environment variables are required")
+
     cwd = str(Path(__file__).parent)  # current directory
     print(f"Working on dir : {cwd}")
     # Get list of changed files
     files_result = subprocess.run(
-        ["git", "diff", "--name-status", f"{base_branch}...HEAD"],
+        ["git", "diff", "--name-status", f"{base_sha}...{head_sha}"],
         capture_output=True,
         text=True,
         check=True,
@@ -60,7 +65,7 @@ def analyze_file_changes(
 
     # Get diff statistics
     stat_result = subprocess.run(
-        ["git", "diff", "--stat", f"{base_branch}...HEAD"],
+        ["git", "diff", "--stat", f"{base_sha}...{head_sha}"],
         capture_output=True,
         text=True,
         cwd=cwd,
@@ -71,7 +76,7 @@ def analyze_file_changes(
     truncated = False
     if include_diff:
         diff_result = subprocess.run(
-            ["git", "diff", f"{base_branch}...HEAD"],
+            ["git", "diff", f"{base_sha}...{head_sha}"],
             capture_output=True,
             text=True,
             cwd=cwd,
@@ -89,14 +94,14 @@ def analyze_file_changes(
 
     # Get commit messages for context
     commits_result = subprocess.run(
-        ["git", "log", "--oneline", f"{base_branch}..HEAD"],
+        ["git", "log", "--oneline", f"{base_sha}..{head_sha}"],
         capture_output=True,
         text=True,
         cwd=cwd,
     )
 
     analysis = {
-        "base_branch": base_branch,
+        "base_sha": base_sha,
         "files_changed": files_result.stdout,
         "statistics": stat_result.stdout,
         "commits": commits_result.stdout,
@@ -106,6 +111,7 @@ def analyze_file_changes(
         "truncated": truncated,
         "total_diff_lines": len(diff_lines) if include_diff else 0,
     }
+
 
     return json.dumps(analysis, indent=2)
 
@@ -249,4 +255,8 @@ if __name__ == "__main__":
     filled_template = fill_template(
         change_type=change_type, git_changes_summary=change_summary
     )
-    print(filled_template)
+    
+    # Write the output to a file
+    with open("pr_description.md", "w") as f:
+        f.write(filled_template)
+    print("PR description generated and saved to pr_description.md")
