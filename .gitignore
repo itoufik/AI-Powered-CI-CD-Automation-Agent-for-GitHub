@@ -12,6 +12,8 @@ wheels/
 #.env
 .env
 
+run.text
+
 #ruff
 .ruff_cache
 
