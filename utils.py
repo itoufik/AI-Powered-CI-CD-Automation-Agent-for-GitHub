@@ -3,7 +3,7 @@ import os
 openai_api_key = os.getenv("OPENAI_API_KEY")
 
 
-def get_gpt_response(full_prompt: str, model="gpt-4") -> str:
+def get_gpt_response(full_prompt: str, model="gpt-4-turbo") -> str:
     """Gets a response from the GPT-4 model.
 
     Args:
