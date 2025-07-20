@@ -1,1 +1,1 @@
-[CI/CD Workflow Diagram](docs/flow.html)
+![Diagram](docs/flow.png)
