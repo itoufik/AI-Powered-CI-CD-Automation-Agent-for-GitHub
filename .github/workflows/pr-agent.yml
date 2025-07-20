@@ -38,7 +38,7 @@ jobs:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
-          python git_changes.py
+          python git_changes_analyser.py
           PR_BODY_CONTENT="$(cat pr_description.md)"
           echo "pr_body<<EOF" >> $GITHUB_OUTPUT
           echo "$PR_BODY_CONTENT" >> $GITHUB_OUTPUT
