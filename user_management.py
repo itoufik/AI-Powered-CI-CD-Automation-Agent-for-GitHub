@@ -60,3 +60,7 @@ def delete_user(user_id: str):
         return {"message": "User deleted"}
     except ClientError as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+for i in range(5):
+    print("Hi")
