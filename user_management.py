@@ -63,4 +63,4 @@ def delete_user(user_id: str):
 
 
 for i in range(5):
-    print("Hi")
+    print("Hello")
