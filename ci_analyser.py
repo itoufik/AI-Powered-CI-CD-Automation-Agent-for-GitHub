@@ -12,7 +12,7 @@ def get_recent_actions_events(limit: int = 100) -> str:
     """Get recent GitHub Actions events received via webhook.
 
     Args:
-        limit: Maximum number of events to return (default: 10)
+        limit: Maximum number of events to return (default: 100)
     """
     # Read events from file
     if not EVENTS_FILE.exists():

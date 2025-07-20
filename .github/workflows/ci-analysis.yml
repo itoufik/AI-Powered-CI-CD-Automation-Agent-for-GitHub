@@ -1,0 +1,57 @@
+name: CI Analysis and Slack Notification
+
+on:
+  workflow_run:
+    workflows: ["Python package"]
+    types:
+      - completed
+
+jobs:
+  analyze-and-notify:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == '''success''' }}
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Create github_events.json
+        env:
+          EVENT_PAYLOAD: ${{ toJSON(github.event) }}
+        run: |
+          # The ci_analyser.py script expects a list of events in github_events.json
+          # We create a list containing the single workflow_run event payload.
+          echo "$EVENT_PAYLOAD" | jq '[. ]' > github_events.json
+
+      - name: Run CI Analyser and generate summary
+        id: analysis
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          SUMMARY=$(python -c "from ci_analyser import get_workflow_status, analyze_ci_results, create_deployment_summary; status = get_workflow_status(); analysis = analyze_ci_results(status); summary = create_deployment_summary(analysis); print(summary)")
+          echo "summary<<EOF" >> $GITHUB_OUTPUT
+          echo "$SUMMARY" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Send notification to Slack
+        uses: slackapi/slack-github-action@v1.25.0
+        with:
+          payload: |
+            {
+              "text": "${{ steps.analysis.outputs.summary }}"
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
