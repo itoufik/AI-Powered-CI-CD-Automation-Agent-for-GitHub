@@ -9,7 +9,7 @@ on:
 jobs:
   analyze-and-notify:
     runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == '''success''' }}
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
 
     permissions:
       contents: read
