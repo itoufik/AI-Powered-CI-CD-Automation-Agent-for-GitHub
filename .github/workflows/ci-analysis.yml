@@ -41,4 +41,4 @@ jobs:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         run: |
-          python -c "from slack_webhook import send_slack_sms; send_slack_sms()"
+          python -c "from slack_webhook import send_slack_message; send_slack_message()"
