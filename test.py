@@ -1,43 +1,49 @@
-def fibonacci(n):
-    """Generate the first n Fibonacci numbers."""
-    if n <= 0:
-        return []
-    elif n == 1:
-        return [0]
-    
-    fib_sequence = [0, 1]
-    for i in range(2, n):
-        fib_sequence.append(fib_sequence[i-1] + fib_sequence[i-2])
-    
-    return fib_sequence
+from fastapi import FastAPI, Request, HTTPException
+from pathlib import Path
+import json
+from datetime import datetime
+import httpx
 
+app = FastAPI()
 
-def fibonacci_nth(n):
-    """Return the nth Fibonacci number (0-indexed)."""
-    if n < 0:
-        return None
-    elif n == 0:
-        return 0
-    elif n == 1:
-        return 1
-    
-    prev, curr = 0, 1
-    for _ in range(2, n + 1):
-        prev, curr = curr, prev + curr
-    
-    return curr
+# Use environment variable for local storage path
+EVENTS_FILE = Path(__file__).parent / "github_events.json"
+LOCAL_WEBHOOK_URL = "http://localhost:8000/local-events"  # Your local server URL
 
+async def save_event(data, headers):
+    event = {
+        "timestamp": datetime.utcnow().isoformat(),
+        "event_type": headers.get("X-GitHub-Event", "unknown"),
+        "action": data.get("action"),
+        "workflow_run": data.get("workflow_run"),
+        "check_run": data.get("check_run"),
+        "repository": data.get("repository", {}).get("full_name"),
+        "sender": data.get("sender", {}).get("login")
+    }
+    return event
 
-# Example usage
-if __name__ == "__main__":
-    # Generate first 10 Fibonacci numbers
-    print("First 10 Fibonacci numbers:")
-    print(fibonacci(10))
+async def send_to_local(event):
+    """Send event to local server for logging"""
+    try:
+        async with httpx.AsyncClient(timeout=5.0) as client:
+            await client.post(LOCAL_WEBHOOK_URL, json=event)
+    except Exception as e:
+        print(f"Failed to send to local server: {e}")
+
+@app.post("/webhook/github")
+async def handle_webhook(request: Request):
+    try:
+        data = await request.json()
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
     
-    # Get the 15th Fibonacci number
-    print("\nThe 15th Fibonacci number (0-indexed):")
-    print(fibonacci_nth(15))
+    event = await save_event(data, request.headers)
     
-    # Generate more numbers
-    print("\nFirst 20 Fibonacci numbers:")
-    print(fibonacci(20))
+    # Send to local server asynchronously
+    await send_to_local(event)
+    
+    return {"status": "received"}
+
+@app.get("/health")
+async def health_check():
+    return {"status": "ok"}
